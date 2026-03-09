@@ -4,6 +4,7 @@ using MarketProduction.Application.Interfaces;
 using MarketProduction.Application.DTOs;
 using MarketProduction.Infrastructure.Persistence;
 using MarketProduction.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MarketProduction.Api.Controllers;
 
@@ -11,7 +12,7 @@ namespace MarketProduction.Api.Controllers;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductRepository _repo; // Nombre correcto según tu constructor
+    private readonly IProductRepository _repo;
     private readonly AppDbContext _context;
 
     public ProductsController(IProductRepository repo, AppDbContext context)
@@ -20,9 +21,11 @@ public class ProductsController : ControllerBase
         _context = context;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateBulk([FromBody] BulkRequest request)
     {
+        // Se ha unificado el método eliminando el duplicado
         await _repo.AddBulkProductsAsync(request.Count, request.CategoryId);
         return Ok(new { message = $"Se crearon {request.Count} productos correctamente." });
     }
@@ -38,7 +41,6 @@ public class ProductsController : ControllerBase
         var total = await query.CountAsync();
         var data = await query.Skip((page - 1) * size).Take(size).ToListAsync();
 
-        // Mapeo de la lista a DTOs
         var dtoList = data.Select(p => new ProductRead1Dto(
             p.ProductID,
             p.ProductName,
@@ -49,18 +51,14 @@ public class ProductsController : ControllerBase
         return Ok(new { Total = total, Page = page, Items = dtoList });
     }
 
-    // He combinado la lógica: eliminé el GetById original que causaba ciclo JSON
-    // y mantuve el que utiliza tu nuevo DTO ProductRead1Dto.
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        // Usamos el repositorio para obtener la entidad con su categoría
         var product = await _repo.GetByIdAsync(id);
 
         if (product == null)
             return NotFound(new { message = "Producto no encontrado." });
 
-        // Mapeo manual al DTO (esto soluciona el error de "A possible object cycle was detected")
         var productDto = new ProductRead1Dto(
             product.ProductID,
             product.ProductName,
@@ -70,6 +68,7 @@ public class ProductsController : ControllerBase
 
         return Ok(productDto);
     }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] Product productUpdate)
     {
@@ -78,14 +77,13 @@ public class ProductsController : ControllerBase
         var existingProduct = await _repo.GetByIdAsync(id);
         if (existingProduct == null) return NotFound();
 
-        // Actualizamos solo los campos necesarios
         existingProduct.ProductName = productUpdate.ProductName;
         existingProduct.UnitPrice = productUpdate.UnitPrice;
         existingProduct.CategoryID = productUpdate.CategoryID;
 
         await _repo.UpdateAsync(existingProduct);
 
-        return NoContent(); // 204 es el estándar para actualizaciones exitosas
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
@@ -95,6 +93,6 @@ public class ProductsController : ControllerBase
         if (product == null) return NotFound();
 
         await _repo.DeleteAsync(id);
-        return NoContent(); // 204 indica que se borró correctamente
+        return NoContent();
     }
 }
