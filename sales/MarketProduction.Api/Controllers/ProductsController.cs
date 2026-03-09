@@ -70,4 +70,31 @@ public class ProductsController : ControllerBase
 
         return Ok(productDto);
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] Product productUpdate)
+    {
+        if (id != productUpdate.ProductID) return BadRequest("El ID no coincide.");
+
+        var existingProduct = await _repo.GetByIdAsync(id);
+        if (existingProduct == null) return NotFound();
+
+        // Actualizamos solo los campos necesarios
+        existingProduct.ProductName = productUpdate.ProductName;
+        existingProduct.UnitPrice = productUpdate.UnitPrice;
+        existingProduct.CategoryID = productUpdate.CategoryID;
+
+        await _repo.UpdateAsync(existingProduct);
+
+        return NoContent(); // 204 es el estándar para actualizaciones exitosas
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var product = await _repo.GetByIdAsync(id);
+        if (product == null) return NotFound();
+
+        await _repo.DeleteAsync(id);
+        return NoContent(); // 204 indica que se borró correctamente
+    }
 }

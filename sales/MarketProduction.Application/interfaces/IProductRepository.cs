@@ -11,4 +11,6 @@ public interface IProductRepository
     
     // Agregamos la firma del método para la carga masiva que implementaste
     Task AddBulkProductsAsync(int count, int categoryId);
+    Task UpdateAsync(Product product);
+    Task DeleteAsync(int id);
 }
