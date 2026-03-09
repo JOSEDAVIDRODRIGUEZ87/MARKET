@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataPulse.Domain.Entities;
+namespace MarketProduction.Domain.Entities;
 
 public class Employee
 {

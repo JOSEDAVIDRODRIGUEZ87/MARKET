@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using DataPulse.Domain.Entities;
+using MarketProduction.Domain.Entities;
 
 namespace MarketProduction.Infrastructure.Persistence;
 

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace DataPulse.Domain.Entities;
+namespace MarketProduction.Domain.Entities;
 
 public class Shipper
 {
