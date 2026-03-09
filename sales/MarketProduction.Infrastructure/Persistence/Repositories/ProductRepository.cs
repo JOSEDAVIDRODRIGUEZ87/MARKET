@@ -41,4 +41,10 @@ public class ProductRepository : IProductRepository
         await _context.SaveChangesAsync();
         _context.ChangeTracker.AutoDetectChangesEnabled = true;
     }
+    public async Task<Product?> GetByIdAsync(int id)
+    {
+        return await _context.Products
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.ProductID == id);
+    }
 }

@@ -11,10 +11,9 @@ namespace MarketProduction.Api.Controllers;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductRepository _repo;
+    private readonly IProductRepository _repo; // Nombre correcto según tu constructor
     private readonly AppDbContext _context;
 
-    // Inyectamos ambos: el repositorio para operaciones lógicas y el context para consultas rápidas
     public ProductsController(IProductRepository repo, AppDbContext context)
     {
         _repo = repo;
@@ -24,7 +23,6 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateBulk([FromBody] BulkRequest request)
     {
-        // Delegamos la carga masiva al repositorio
         await _repo.AddBulkProductsAsync(request.Count, request.CategoryId);
         return Ok(new { message = $"Se crearon {request.Count} productos correctamente." });
     }
@@ -32,25 +30,44 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll(int page = 1, int size = 20, string? search = null)
     {
-        var query = _context.Products.AsQueryable();
+        var query = _context.Products.Include(p => p.Category).AsQueryable();
 
         if (!string.IsNullOrEmpty(search))
             query = query.Where(p => p.ProductName.Contains(search));
 
-        // Aplicamos paginación usando EF Core
         var total = await query.CountAsync();
         var data = await query.Skip((page - 1) * size).Take(size).ToListAsync();
 
-        return Ok(new { Total = total, Page = page, Items = data });
+        // Mapeo de la lista a DTOs
+        var dtoList = data.Select(p => new ProductRead1Dto(
+            p.ProductID,
+            p.ProductName,
+            p.UnitPrice,
+            p.Category?.CategoryName ?? "Sin categoría"
+        )).ToList();
+
+        return Ok(new { Total = total, Page = page, Items = dtoList });
     }
 
+    // He combinado la lógica: eliminé el GetById original que causaba ciclo JSON
+    // y mantuve el que utiliza tu nuevo DTO ProductRead1Dto.
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var product = await _context.Products
-            .Include(p => p.Category) // JOIN con la tabla de categorías
-            .FirstOrDefaultAsync(p => p.ProductID == id);
+        // Usamos el repositorio para obtener la entidad con su categoría
+        var product = await _repo.GetByIdAsync(id);
 
-        return product != null ? Ok(product) : NotFound(new { message = "Producto no encontrado." });
+        if (product == null)
+            return NotFound(new { message = "Producto no encontrado." });
+
+        // Mapeo manual al DTO (esto soluciona el error de "A possible object cycle was detected")
+        var productDto = new ProductRead1Dto(
+            product.ProductID,
+            product.ProductName,
+            product.UnitPrice,
+            product.Category?.CategoryName ?? "Sin categoría"
+        );
+
+        return Ok(productDto);
     }
 }
