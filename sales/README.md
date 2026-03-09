@@ -22,3 +22,12 @@ API desarrollada en ASP.NET Core para la gestión de productos y categorías de 
 1. Configurar la cadena de conexión en `appsettings.json`.
 2. Ejecutar `dotnet run --project MarketProduction.Api`.
 3. Visitar `http://localhost:5039/swagger` para probar los endpoints.
+
+## DevOps y Despliegue
+
+### Containerización
+El proyecto cuenta con configuración lista para producción:
+- **Dockerfile:** Optimizado en múltiples etapas para reducir el tamaño de la imagen final.
+- **Docker Compose:** Permite levantar todo el entorno (API + Base de Datos) con un simple comando:
+  ```bash
+  docker-compose up --build
