@@ -1,15 +1,24 @@
+using Microsoft.EntityFrameworkCore; // Necesario para UseNpgsql
+using MarketProduction.Infrastructure.Persistence; // Ajusta según el namespace de tu archivo AppDbContext
+
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Agregar servicios al contenedor (Inyección de Dependencias)
+// --- AGREGA ESTO ---
+// Obtenemos la cadena de conexión del appsettings.json
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Registramos el contexto para usar PostgreSQL
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+// -------------------
+
 builder.Services.AddControllers();
 
-// Configuración de Swagger para documentar tu API (Súper importante para la prueba)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 2. Configurar el pipeline de solicitudes HTTP (Middlewares)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -18,7 +27,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Esto es vital para el requerimiento de Seguridad que te pidieron
 app.UseAuthentication();
 app.UseAuthorization();
 
