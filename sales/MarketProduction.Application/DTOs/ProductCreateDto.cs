@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DataPulse.Application.DTOs;
+namespace MarketProduction.Application.DTOs;
 
 public record ProductCreateDto(
     [Required] [StringLength(100)] string ProductName,

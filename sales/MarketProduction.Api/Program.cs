@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore; // Necesario para UseNpgsql
 using MarketProduction.Infrastructure.Persistence; // Ajusta según el namespace de tu archivo AppDbContext
-
+using MarketProduction.Infrastructure.Persistence.Repositories;
+using MarketProduction.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<MarketProduction.Application.Interfaces.IProductRepository, MarketProduction.Infrastructure.Persistence.Repositories.ProductRepository>();
 // ---------------------------------------------------
 // -------------------
-
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

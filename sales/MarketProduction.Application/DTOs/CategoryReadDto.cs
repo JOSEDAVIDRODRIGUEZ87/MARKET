@@ -1,4 +1,4 @@
-namespace DataPulse.Application.DTOs;
+namespace MarketProduction.Application.DTOs;
 
 public record CategoryReadDto(
     int CategoryID,
